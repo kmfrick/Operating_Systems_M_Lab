@@ -4,29 +4,10 @@
 #include <omp.h>
 #include <time.h>
 
-const size_t m = 10;
 const int MAX = 10;
 
-int main(int argc, char* argv[])
+void run(int m, int size)
 {
-
-	if (argc < 2) {
-		printf("Usage: %s MATRIX_SIZE NUM_PROCESSES\n", argv[0]);
-	}
-	int m = atoi(argv[1]);
-	int size = atoi(argv[2]);
-	int rank;
-	if(size > m)
-	{
-		printf("No. of processes %d is greater than matrix size %d.\n",size, m);
-		abort();
-	}
-	if (m % size) {
-		printf("Matrix size %d is not a multiple of process count %d.\n", m, size);
-		abort();
-	}
-
-
 	// Define my value
 	int B[m][m], C[m * m];
 
@@ -45,22 +26,22 @@ int main(int argc, char* argv[])
 		}
 	}
 	/*
-	printf("A = \n");
-	for(int i = 0; i<m; i++) {
-		for (int j = 0; j < m; j++) {
-			printf("\t%d", B[i][j]);
-		}
-		printf("\n");
-	}
+		 printf("A = \n");
+		 for(int i = 0; i<m; i++) {
+		 for (int j = 0; j < m; j++) {
+		 printf("\t%d", B[i][j]);
+		 }
+		 printf("\n");
+		 }
 
-	printf("B = \n");
-	for(int i = 0; i<m; i++) {
-		for (int j = 0; j < m; j++) {
-			printf("\t%d", B[i][j]);
-		}
-		printf("\n");
-	}
-	*/
+		 printf("B = \n");
+		 for(int i = 0; i<m; i++) {
+		 for (int j = 0; j < m; j++) {
+		 printf("\t%d", B[i][j]);
+		 }
+		 printf("\n");
+		 }
+	 */
 
 	// Zero out C
 	for(int i = 0; i < m; i++) {
@@ -83,14 +64,33 @@ int main(int argc, char* argv[])
 	double end = omp_get_wtime();
 	printf("n = %d, m = %d, t = %lf\n", size, m, end - start);
 	/*
-	printf("C = AB\n");
-	for(int i = 0; i< m; i++) {
-		for (int j = 0; j < m; j++) {
-			printf("\t%d", C[i * m + j]);
-		}
-		printf("\n");
+		 printf("C = AB\n");
+		 for(int i = 0; i< m; i++) {
+		 for (int j = 0; j < m; j++) {
+		 printf("\t%d", C[i * m + j]);
+		 }
+		 printf("\n");
+		 }
+	 */
+}
+
+int main(int argc, char* argv[])
+{
+	if (argc < 2) {
+		printf("Usage: %s MATRIX_SIZE NUM_PROCESSES\n", argv[0]);
+		exit(1);
 	}
-	*/
+	int m = atoi(argv[1]);
+	int size = atoi(argv[2]);
+	int rank;
+	if (size > m) {
+		printf("No. of processes %d is greater than matrix size %d.\n",size, m);
+	} else if (m % size) {
+		printf("Matrix size %d is not a multiple of process count %d.\n", m, size);
+	} else {
+		run(m, size);
+	}
 	return 0;
+
 }
 
