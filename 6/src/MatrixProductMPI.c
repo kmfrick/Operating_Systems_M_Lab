@@ -36,6 +36,7 @@ int main(int argc, char* argv[])
 	// Define my value
 	int *my_A = NULL, *my_C = NULL;
 	int *B = (int*) malloc(m * m * sizeof(int));
+	double begin;
 
 	if (rank == 0)
 	{
@@ -70,6 +71,8 @@ int main(int argc, char* argv[])
 			printf("my_A is NULL n process %d\n", rank);
 			MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
+		MPI_Barrier(MPI_COMM_WORLD);
+		begin = MPI_Wtime();
 		MPI_Scatter(A, m * rows, MPI_INT, my_A, m * rows, MPI_INT, 0, MPI_COMM_WORLD);
 	} else  {
 		// Scatter
@@ -78,11 +81,11 @@ int main(int argc, char* argv[])
 			printf("my_A is NULL n process %d\n", rank);
 			MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 		}
+		MPI_Barrier(MPI_COMM_WORLD);
+		begin = MPI_Wtime();
 		MPI_Scatter(NULL, m * rows, MPI_INT, my_A, m * rows, MPI_INT, 0, MPI_COMM_WORLD);
 	}
 	MPI_Bcast(B, m*m, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Barrier(MPI_COMM_WORLD);
-	double begin = MPI_Wtime();
 
 	my_C = (int*)malloc(m * rows * sizeof(int));
 	if (my_C == NULL) {
