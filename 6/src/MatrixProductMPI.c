@@ -9,11 +9,12 @@ const int MAX = 10;
 int main(int argc, char* argv[])
 {
 	MPI_Init(&argc, &argv);
-	if (argc < 2) {
-		printf("Usage: %s MATRIX_SIZE\n", argv[0]);
+	if (argc < 3) {
+		printf("Usage: %s MATRIX_SIZE NAME\n", argv[0]);
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
 	int m = atoi(argv[1]);
+	char* name = argv[2];
 
 	// Get number of processes and check that 4 processes are used
 	int size;
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
 	double global_elaps;
 	MPI_Reduce(&local_elaps, &global_elaps,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
 	if (rank == 0) {			
-		printf("n = %d, m = %d, t = %lf\n", size, m, global_elaps);
+		printf("%s, %d, %d, %lf\n", name, size, m, global_elaps);
 	}
 	MPI_Finalize();
 

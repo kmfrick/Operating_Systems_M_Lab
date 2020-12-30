@@ -4,8 +4,10 @@
 #SBATCH -t 00:30:00
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=2
-#SBATCH -o ../../../out/MatrixProductMPI_Slow_Frick_8K_8N.out
+#SBATCH -o ../../../out/MatrixProductMPI_Slow_Weak.out
+#SBATCH --open-mode=append
+
 # env. variables and modules
 module load autoload intelmpi
 # execution lines
-srun ../../../bin/MatrixProductMPI_Slow 8000
+srun ../../../bin/MatrixProductMPI_Slow 800 mpi.s.weak

@@ -4,9 +4,12 @@
 #SBATCH -t 00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH -c 16
-#SBATCH -o ../../../out/MatrixProductOpenMP_Frick_16K_16N.out
+#SBATCH -c 1
+#SBATCH -o ../../../out/MatrixProductOpenMP_Weak.out
+#SBATCH --open-mode=append
+
 # env. variables and modules
 module load autoload intelmpi
 # execution lines
-srun ../../../bin/MatrixProductOpenMP 16000 16
+srun ../../../bin/MatrixProductOpenMP 200 1 omp.weak
+ 

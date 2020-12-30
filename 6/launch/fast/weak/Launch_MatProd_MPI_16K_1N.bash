@@ -6,8 +6,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH -o ../../../out/MatrixProductMPI_Fast_Weak.out
 #SBATCH --open-mode=append
-
 # env. variables and modules
 module load autoload intelmpi
 # execution lines
-srun ../../../bin/MatrixProductMPI 100 mpi.f.weak
+srun ../../../bin/MatrixProductMPI 1600 mpi.f.weak

@@ -6,7 +6,7 @@
 
 const int MAX = 10;
 
-void run(int m, int size)
+void run(int m, int size, char *name)
 {
 	// Define my value
 	int B[m][m], C[m * m];
@@ -62,7 +62,7 @@ void run(int m, int size)
 	}
 #pragma omp barrier
 	double end = omp_get_wtime();
-	printf("n = %d, m = %d, t = %lf\n", size, m, end - start);
+	printf("%s, %d, %d, %lf\n", name, size, m, end - start);
 	/*
 		 printf("C = AB\n");
 		 for(int i = 0; i< m; i++) {
@@ -76,19 +76,20 @@ void run(int m, int size)
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2) {
-		printf("Usage: %s MATRIX_SIZE NUM_PROCESSES\n", argv[0]);
+	if (argc < 3) {
+		printf("Usage: %s MATRIX_SIZE NUM_PROCESSES NAME\n", argv[0]);
 		exit(1);
 	}
 	int m = atoi(argv[1]);
 	int size = atoi(argv[2]);
+	char* name = argv[3];
 	int rank;
 	if (size > m) {
 		printf("No. of processes %d is greater than matrix size %d.\n",size, m);
 	} else if (m % size) {
 		printf("Matrix size %d is not a multiple of process count %d.\n", m, size);
 	} else {
-		run(m, size);
+		run(m, size, name);
 	}
 	return 0;
 

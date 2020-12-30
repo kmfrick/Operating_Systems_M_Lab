@@ -4,8 +4,10 @@
 #SBATCH -t 00:30:00
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=1
-#SBATCH -o ../../../out/MatrixProductMPI_Frick_2K_2N.out
+#SBATCH -o ../../../out/MatrixProductMPI_Fast_Weak.out
+#SBATCH --open-mode=append
+
 # env. variables and modules
 module load autoload intelmpi
 # execution lines
-srun ../../../bin/MatrixProductMPI 2000
+srun ../../../bin/MatrixProductMPI 200 mpi.f.weak

@@ -10,4 +10,4 @@
 # env. variables and modules
 module load autoload intelmpi
 # execution lines
-srun ../../../bin/MatrixProductMPI 100 mpi.f.weak
+srun ../../../bin/MatrixProductMPI 200 mpi.f.weak
