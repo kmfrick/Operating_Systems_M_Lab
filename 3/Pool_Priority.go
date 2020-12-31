@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-const MAXPROC = 10
-const MAXRES = 3
-const MAXBUFF = 20
+const MaxProc = 10
+const MaxRes = 3
+const MaxBuff = 20
 
-var request = make(chan int, MAXBUFF)
-var release = make(chan int, MAXBUFF)
-var resource [MAXPROC]chan int
+var request = make(chan int, MaxBuff)
+var release = make(chan int, MaxBuff)
+var resource [MaxProc]chan int
 var done = make(chan int)
 var terminate = make(chan int)
 
@@ -29,17 +29,17 @@ func client(i int) {
 
 func server() {
 
-	var avail int = MAXRES
+	var avail int = MaxRes
 	var res, p, i int
-	var free [MAXRES]bool
+	var free [MaxRes]bool
 	var susp = 0
-	var blocked [MAXPROC]bool
+	var blocked [MaxProc]bool
 
 	// init
-	for i := 0; i < MAXRES; i++ {
+	for i := 0; i < MaxRes; i++ {
 		free[i] = true
 	}
-	for i := 0; i < MAXPROC; i++ {
+	for i := 0; i < MaxProc; i++ {
 		blocked[i] = false
 	}
 
@@ -53,7 +53,7 @@ func server() {
 				free[res] = true
 				fmt.Printf("[server] Releasing resource: %d  \n", res)
 			} else {
-				for i = MAXPROC - 1; i >= 0 && !blocked[i]; i-- { // Priority to higher indices
+				for i = MaxProc - 1; i >= 0 && !blocked[i]; i-- { // Priority to higher indices
 				}
 				blocked[i] = false
 				susp--
@@ -63,7 +63,7 @@ func server() {
 
 		case p = <-request:
 			if avail > 0 {
-				for i = 0; i < MAXRES && !free[i]; i++ {
+				for i = 0; i < MaxRes && !free[i]; i++ {
 				}
 				free[i] = false
 				avail--
@@ -85,12 +85,12 @@ func server() {
 
 func main() {
 	var cli int
-	fmt.Printf("\n  How many clients? (max %d)? ", MAXPROC)
+	fmt.Printf("\n  How many clients? (max %d)? ", MaxProc)
 	fmt.Scanf("%d", &cli)
 	fmt.Println("clients:", cli)
 
 	for i := 0; i < cli; i++ {
-		resource[i] = make(chan int, MAXBUFF)
+		resource[i] = make(chan int, MaxBuff)
 	}
 
 	for i := 0; i < cli; i++ {

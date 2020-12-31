@@ -6,83 +6,84 @@ import (
 	"time"
 )
 
-const DIM = 5 // Stages
-const NUM_PROD = 3
-const NUM_CONS = 4
-const MAX_STAGE_DELAY = 3
-const MSG_PER_PROD = 3
-const MAX = 10
 
-// Server take
-func Serve(stage int, ch_in chan int, ch_out chan int) {
+// Serve takes a message from chIn and moves it one step ahead in the pipeline
+// by sending it through chOut
+func Serve(stage int, chIn chan int, chOut chan int) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		msg := <-ch_in
+		msg := <-chIn
 		fmt.Printf("Stage %d received msg %d.\n", stage, msg)
-		t := time.Duration(r.Int() % MAX_STAGE_DELAY)
+		t := time.Duration(r.Int() % MaxStageDelay)
 		time.Sleep(time.Second * t)
-		ch_out <- msg
+		chOut <- msg
 	}
 }
 
-// Produce outputs MSG_PER_PROD random numbers on ch_out spaced by random time intervals
-func Produce(ch_out chan int) {
+// Produce outputs MsgPerProd random numbers on chOut spaced by random time intervals
+func Produce(chOut chan int) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < MSG_PER_PROD; i++ {
-		t := time.Duration(r.Int() % MAX_STAGE_DELAY)
+	const MaxStageDelay = 3
+	const MaxMsg = 10
+	const MsgPerProd = 3
+	for i := 0; i < MsgPerProd; i++ {
+		t := time.Duration(r.Int() % MaxStageDelay)
 		time.Sleep(time.Second * t)
-		msg := r.Int() % MAX
+		msg := r.Int() % MaxMsg
 
 		fmt.Printf("Producing message %d.\n", msg)
-		ch_out <- (msg)
+		chOut <- (msg)
 	}
 	fmt.Printf("Producer: done.\n")
 	return
 }
 
-// Consume infinitely reads from ch_in, outputs the message received, and sends a
-// "done" signal on ch_done
-func Consume(ch_in chan int, ch_done chan bool) {
+// Consume infinitely reads from chIn, outputs the message received, and sends a
+// "done" signal on chDone
+func Consume(chIn chan int, chDone chan bool) {
 	for {
-		msg := <-ch_in
+		msg := <-chIn
 		fmt.Printf("Consuming message %d\n", msg)
-		ch_done <- true
+		chDone <- true
 	}
 }
 
 func main() {
-	produced_data := make(chan int)
-	consumed_data := make(chan int)
-	cons_done := make(chan bool)
-	var buf_in [DIM]chan int
-	for i := 0; i < DIM; i++ {
-		buf_in[i] = make(chan int)
+	const Stages = 5
+	const NumProd = 3
+	const NumCons = 4
+	producedData := make(chan int)
+	consumedData := make(chan int)
+	consDone := make(chan bool)
+	var bufIn [Stages]chan int
+	for i := 0; i < Stages; i++ {
+		bufIn[i] = make(chan int)
 	}
 
 	// First server reads from producer
-	go Serve(0, produced_data, buf_in[0])
+	go Serve(0, producedData, bufIn[0])
 
-	for i := 1; i < DIM; i++ {
-		go Serve(i, buf_in[i-1], buf_in[i])
+	for i := 1; i < Stages; i++ {
+		go Serve(i, bufIn[i-1], bufIn[i])
 	}
 	// Last server outputs to consumer
-	go Serve(DIM, buf_in[DIM-1], consumed_data)
+	go Serve(Stages, bufIn[Stages-1], consumedData)
 
 	// Start consumers
-	for i := 0; i < NUM_CONS; i++ {
-		go Consume(consumed_data, cons_done)
+	for i := 0; i < NumCons; i++ {
+		go Consume(consumedData, consDone)
 	}
 
 	// Start producers
-	for i := 0; i < NUM_PROD; i++ {
-		go Produce(produced_data)
+	for i := 0; i < NumProd; i++ {
+		go Produce(producedData)
 	}
 
 	// This could have been done with a global variabe, but is anti-idiomatic
 	// and presents data races
-	for consumed_cnt := 0; consumed_cnt < NUM_PROD*MSG_PER_PROD; consumed_cnt++ {
-		fmt.Printf("Consumed %d messages\n", consumed_cnt)
-		<-cons_done
+	for consumedCnt := 0; consumedCnt < NumProd*MsgPerProd; consumedCnt++ {
+		fmt.Printf("Consumed %d messages\n", consumedCnt)
+		<-consDone
 	}
 
 }
