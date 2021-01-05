@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
-
 type req struct {
 	amount int
 	ack    chan bool
@@ -15,6 +13,7 @@ type req struct {
 
 
 func worker(ch chan req, max int, ack chan bool, name string) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	const maxSleepTime = 5
 	for {
 		amount := r.Int()%max + 1
