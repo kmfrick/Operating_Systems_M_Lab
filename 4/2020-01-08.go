@@ -9,7 +9,7 @@ import (
 const numWheels = 4
 const maxSleepTime = 5
 
-func Produce(name string, out chan bool) {
+func produce(name string, out chan bool) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
 		time.Sleep(time.Duration(r.Int()%maxSleepTime) * time.Second)
@@ -18,7 +18,7 @@ func Produce(name string, out chan bool) {
 	}
 }
 
-func Assemble(name string, pullC chan bool, pullP chan bool, done chan bool) {
+func assemble(name string, pullC chan bool, pullP chan bool, done chan bool) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
 		time.Sleep(time.Duration(r.Int()%maxSleepTime) * time.Second)
@@ -31,14 +31,14 @@ func Assemble(name string, pullC chan bool, pullP chan bool, done chan bool) {
 	}
 }
 
-func When(cond bool, ch chan bool) chan bool {
+func when(cond bool, ch chan bool) chan bool {
 	if cond {
 		return ch
 	}
 	return nil
 }
 
-func Serve(pushCA, pushCB, pushPA, pushPB, pullCA, pullCB, pullPA, pullPB, doneA, doneB, doneSrv chan bool) {
+func serve(pushCA, pushCB, pushPA, pushPB, pullCA, pullCB, pullPA, pullPB, doneA, doneB, doneSrv chan bool) {
 }
 
 func main() {
@@ -54,13 +54,13 @@ func main() {
 	doneA := make(chan bool)
 	doneB := make(chan bool)
 
-	go Produce("PA", pushPA)
-	go Produce("CA", pushCA)
-	go Produce("PB", pushPB)
-	go Produce("CB", pushCB)
+	go produce("PA", pushPA)
+	go produce("CA", pushCA)
+	go produce("PB", pushPB)
+	go produce("CB", pushCB)
 
-	go Assemble("A", pullCA, pullPA, doneA)
-	go Assemble("B", pullCB, pullPB, doneB)
+	go assemble("A", pullCA, pullPA, doneA)
+	go assemble("B", pullCB, pullPB, doneB)
 	
 	const target = 10
 	const maxP = 5
@@ -83,24 +83,24 @@ func main() {
 		canPullPB := cntPB > 0 && (cntDoneB < cntDoneA || cntPA == 0)
 
 		select {
-		case <-When(canPushCA, pushCA):
+		case <-when(canPushCA, pushCA):
 			cntCA++
-		case <-When(canPushPA, pushPA):
+		case <-when(canPushPA, pushPA):
 			cntPA++
 
-		case <-When(canPullCA, pullCA):
+		case <-when(canPullCA, pullCA):
 			cntCA--
-		case <-When(canPullPA, pullPA):
+		case <-when(canPullPA, pullPA):
 			cntPA--
 
-		case <-When(canPullCB, pullCB):
+		case <-when(canPullCB, pullCB):
 			cntCB--
-		case <-When(canPullPB, pullPB):
+		case <-when(canPullPB, pullPB):
 			cntPB--
 
-		case <-When(canPushCB, pushCB):
+		case <-when(canPushCB, pushCB):
 			cntCB++
-		case <-When(canPushPB, pushPB):
+		case <-when(canPushPB, pushPB):
 			cntPB++
 
 		case <-doneA:
@@ -109,7 +109,7 @@ func main() {
 			cntDoneB++
 		}
 		fmt.Printf("CA = %d; CB = %d; PA = %d; PB = %d\n", cntCA, cntCB, cntPA, cntPB)
-		fmt.Printf("Produced %d A cars and %d B cars\n", cntDoneA, cntDoneB)
+		fmt.Printf("produced %d A cars and %d B cars\n", cntDoneA, cntDoneB)
 	}
 
 }

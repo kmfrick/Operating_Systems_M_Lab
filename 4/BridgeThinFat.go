@@ -6,15 +6,15 @@ import (
 	"time"
 )
 
-func When(cond bool, ch chan int) chan int {
+func when(cond bool, ch chan int) chan int {
 	if !cond {
 		return nil
 	}
 	return ch
 }
 
-func Serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN chan int, outS chan int, ack []chan bool) {
-	const Capacity = 2
+func serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN chan int, outS chan int, ack []chan bool) {
+	const capacity = 2
 	fatOnBridge := false
 	onBridge := 0
 	direction := -1 // 0 N->S 1 S->N
@@ -22,18 +22,18 @@ func Serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN ch
 		if len(outN) > 0 && len(outS) > 0 {
 			panic("Road accident!\n")
 		}
-		if (onBridge > Capacity || (onBridge > 0 && fatOnBridge)) {
+		if (onBridge > capacity || (onBridge > 0 && fatOnBridge)) {
 			fmt.Printf("onBridge = %d; fatOnBridge = %d\n", onBridge, fatOnBridge)
 			panic("Bridge collapsing!\n")
 		}
 		canExitS := direction == 0 && (onBridge > 0 || fatOnBridge)
 		canExitN := direction == 1 && (onBridge > 0 || fatOnBridge)
-		canEnterN := !fatOnBridge && (onBridge == 0 || (onBridge < Capacity && direction == 0))
-		canEnterS := !fatOnBridge && ((onBridge == 0 && len(inN) == 0) || (onBridge < Capacity && direction == 1))
+		canEnterN := !fatOnBridge && (onBridge == 0 || (onBridge < capacity && direction == 0))
+		canEnterS := !fatOnBridge && ((onBridge == 0 && len(inN) == 0) || (onBridge < capacity && direction == 1))
 		canEnterFatN := !fatOnBridge && onBridge == 0 && len(inN) == 0
 		canEnterFatS := canEnterFatN && len(inS) == 0 && len(inFatN) == 0
 		select {
-		case id := <-When(canExitS, outS):
+		case id := <-when(canExitS, outS):
 			fmt.Printf("Vehicle %d exiting from the South\n", id)
 			if (fatOnBridge) {
 				fatOnBridge = false
@@ -41,7 +41,7 @@ func Serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN ch
 				onBridge--
 			}
 			ack[id] <- true
-		case id := <-When(canExitN, outN):
+		case id := <-when(canExitN, outN):
 			fmt.Printf("Vehicle %d exiting from the North\n", id)
 			if (fatOnBridge) {
 				fatOnBridge = false
@@ -49,23 +49,23 @@ func Serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN ch
 				onBridge--
 			}
 			ack[id] <- true
-		case id := <-When(canEnterS, inS):
+		case id := <-when(canEnterS, inS):
 			fmt.Printf("Vehicle %d entering from the South\n", id)
 			onBridge++
 			direction = 1
 			ack[id] <- true
-		case id := <-When(canEnterN, inN):
+		case id := <-when(canEnterN, inN):
 			fmt.Printf("Vehicle %d entering from the North\n", id)
 			onBridge++
 			direction = 0
 			ack[id] <- true
-		case id := <-When(canEnterFatN, inFatN):
+		case id := <-when(canEnterFatN, inFatN):
 			fmt.Printf("Vehicle %d entering from the North\n", id)
 			fmt.Printf("Vehicle %d is fat\n", id)
 			fatOnBridge = true
 			direction = 0
 			ack[id] <- true
-		case id := <-When(canEnterFatS, inFatS) :
+		case id := <-when(canEnterFatS, inFatS) :
 			fmt.Printf("Vehicle %d entering from the South\n", id)
 			fmt.Printf("Vehicle %d is fat\n", id)
 			fatOnBridge = true
@@ -81,14 +81,14 @@ func Serve(inFatN chan int, inFatS chan int, inN chan int, inS chan int, outN ch
 	}
 }
 
-func Client(id int, chIn chan int, chOut chan int, chAck chan bool, chDone chan bool) {
-	const MaxDuration = 5
+func produce(id int, chIn chan int, chOut chan int, chAck chan bool, chDone chan bool) {
+	const maxDuration = 5
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	time.Sleep(time.Duration(r.Int()%MaxDuration) * time.Second)
+	time.Sleep(time.Duration(r.Int()%maxDuration) * time.Second)
 	fmt.Printf("Vehicle %d trying to enter\n", id)
 	chIn <- id
 	<-chAck
-	time.Sleep(time.Duration(r.Int()%MaxDuration) * time.Second)
+	time.Sleep(time.Duration(r.Int()%maxDuration) * time.Second)
 	fmt.Printf("Vehicle %d trying to exit\n", id)
 	chOut <- id
 	<-chAck
@@ -116,18 +116,18 @@ func main() {
 		done[i] = make(chan bool)
 	}
 	for i := 0; i < vehiclesNorth; i++ {
-		go Client(i, inN, outS, ack[i], done[i])
+		go produce(i, inN, outS, ack[i], done[i])
 	}
 	for i := vehiclesNorth; i < vehiclesNorth+vehiclesSouth; i++ {
-		go Client(i, inS, outN, ack[i], done[i])
+		go produce(i, inS, outN, ack[i], done[i])
 	}
 	for i := vehiclesNorth+vehiclesSouth; i < vehiclesNorth+vehiclesSouth+vehiclesFatNorth; i++ {
-		go Client(i, inFatN, outS, ack[i], done[i])
+		go produce(i, inFatN, outS, ack[i], done[i])
 	}
 	for i := vehiclesNorth+vehiclesSouth+vehiclesFatNorth; i < vehicles; i++ {
-		go Client(i, inFatS, outN, ack[i], done[i])
+		go produce(i, inFatS, outN, ack[i], done[i])
 	}
-	go Serve(inFatN, inFatS, inN, inS, outN, outS, ack)
+	go serve(inFatN, inFatS, inN, inS, outN, outS, ack)
 	for i := 0; i < vehicles; i++ {
 		<-done[i]
 	}
