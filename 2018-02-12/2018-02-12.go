@@ -29,8 +29,7 @@ func worker(ch chan req, max int, ack chan bool, name string) {
 func serveRequest(ch chan req, subtractFrom *int, addTo *int, max int, mustSubtract bool) bool {
 	// Search for prioritary request
 	request := req{-1, nil}
-	numReq := len(ch)
-	for i := 0; i < numReq; i++ {
+	for i := 0; i < len(ch); i++ {
 		request = <-ch
 		if request.amount > max/2 || (mustSubtract && request.amount > *subtractFrom) {
 //			fmt.Printf("Request %d is not prioritary or not admissible\n", request.amount)
@@ -42,8 +41,7 @@ func serveRequest(ch chan req, subtractFrom *int, addTo *int, max int, mustSubtr
 		}
 	}
 	if request.amount < 0 { // No prioritary request
-		numReq := len(ch)
-		for i := 0; i < numReq; i++ {
+		for i := 0; i < len(ch); i++ {
 			request = <-ch
 			if (*addTo+request.amount > max) || (mustSubtract && request.amount > *subtractFrom) {
 //				fmt.Printf("Request %d is not admissible\n", request.amount)
