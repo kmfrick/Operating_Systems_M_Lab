@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 func consume(ch chan int, done chan int, name string) {
 	const maxRequests = 5
 	const maxConsumeTime = 4
@@ -27,7 +26,7 @@ func produce(ch [numCodes]chan int, name string) {
 	const maxProduceTime = 10
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
-		request := r.Int()%numCodes
+		request := r.Int() % numCodes
 		ch[request] <- request
 		fmt.Printf("Producer %s sent request code %d\n", name, request)
 		time.Sleep(time.Second * time.Duration(r.Int()%maxProduceTime))
@@ -47,7 +46,6 @@ func serve(triageQueue [numCodes]chan int, triage chan int, name string) {
 	}
 	panic("Server dying\n")
 }
-
 
 func main() {
 
@@ -69,7 +67,6 @@ func main() {
 
 	var doneAdults [numAdultConsumers]chan int
 	var doneChildren [numChildrenConsumers]chan int
-
 
 	for i := 0; i < numAdultProducers; i++ {
 		go produce(adultsTriageQueue, fmt.Sprintf("adults%d", i))
@@ -99,6 +96,3 @@ func main() {
 		<-doneChildren[i]
 	}
 }
-
-
-

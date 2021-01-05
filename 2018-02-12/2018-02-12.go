@@ -11,7 +11,6 @@ type req struct {
 	ack    chan bool
 }
 
-
 func worker(ch chan req, max int, ack chan bool, name string) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	const maxSleepTime = 5
@@ -31,7 +30,7 @@ func serveRequest(ch chan req, subtractFrom *int, addTo *int, max int, mustSubtr
 	for i := 0; i < len(ch); i++ {
 		request = <-ch
 		if request.amount > max/2 || (mustSubtract && request.amount > *subtractFrom) {
-//			fmt.Printf("Request %d is not prioritary or not admissible\n", request.amount)
+			//			fmt.Printf("Request %d is not prioritary or not admissible\n", request.amount)
 			ch <- request
 			request = req{-1, nil}
 		} else {
@@ -43,7 +42,7 @@ func serveRequest(ch chan req, subtractFrom *int, addTo *int, max int, mustSubtr
 		for i := 0; i < len(ch); i++ {
 			request = <-ch
 			if (*addTo+request.amount > max) || (mustSubtract && request.amount > *subtractFrom) {
-//				fmt.Printf("Request %d is not admissible\n", request.amount)
+				//				fmt.Printf("Request %d is not admissible\n", request.amount)
 				ch <- request
 				request = req{-1, nil}
 			} else {
@@ -83,7 +82,7 @@ func main() {
 	}
 
 	for {
-		if (len(hospitalWorker)+len(laundryWorker) > 0) {
+		if len(hospitalWorker)+len(laundryWorker) > 0 {
 			hospitalWorkerFirst := clean > dirty
 			servedPrioritary := false
 			if hospitalWorkerFirst && len(hospitalWorker) > 0 {
@@ -91,9 +90,9 @@ func main() {
 					fmt.Printf("Clean = %d; Dirty = %d\n", clean, dirty)
 					servedPrioritary = true
 				} else {
-//					fmt.Printf("Could not serve prioritary, falling through\n")
+					//					fmt.Printf("Could not serve prioritary, falling through\n")
 				}
-			} 
+			}
 			if len(laundryWorker) > 0 && !servedPrioritary {
 				if serveRequest(laundryWorker, &dirty, &clean, maxClean, false) {
 					if dirty < 0 {
@@ -101,7 +100,7 @@ func main() {
 					}
 					fmt.Printf("Clean = %d; Dirty = %d\n", clean, dirty)
 				} else {
-//					fmt.Printf("Could not serve nonprioritary request\n")
+					//					fmt.Printf("Could not serve nonprioritary request\n")
 				}
 			}
 		}
