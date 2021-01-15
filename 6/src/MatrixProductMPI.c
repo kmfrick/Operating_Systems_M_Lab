@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
 	}
 	if (m % size) {
 		printf("Matrix size %d is not a multiple of process count %d.\n", m, size);
+		// In this case, an imbalanced allocation should be performed
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
 
